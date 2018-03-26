@@ -130,25 +130,24 @@ public class Human extends Player {
 
     public String askBlockSteal(Player origin) {
         System.out.println("Player " + number + ": " +"Player " + origin.getNumber() + " is attempting to Steal from  you. Would you like to block it? (Y/N)");
-        if (decider()){
+        if (decider()) {
             System.out.println("Press 1 to block with Ambassador, Press 2 to block with Captain");
+            Scanner reader = new Scanner(System.in);
+            int n = reader.nextInt();
+            while (n > 2 || n < 1) {
+                System.out.println("Incorrect input");
+                System.out.println("Press 1 to block with Ambassador, Press 2 to block with Captain");
+                reader = new Scanner(System.in);
+                n = reader.nextInt();
+            }
 
+            if (n == 1) {
+                return "Ambassador";
+            } else {
+                return "Captain";
+            }
         }
-        Scanner reader = new Scanner(System.in);
-        int n = reader.nextInt();
-        while (n>2 || n<1){
-            System.out.println("Incorrect input");
-            System.out.println("Press 1 to block with Ambassador, Press 2 to block with Captain");
-            reader = new Scanner(System.in);
-             n = reader.nextInt();
-        }
-
-        if (n == 1){
-            return "Ambassador";
-        }else{
-            return "Captain";
-        }
-
+        return null;
     }
 
     public String askChallenge(Event e) {
@@ -162,8 +161,12 @@ public class Human extends Player {
     }
 
     public Event askAction(){
+        if (coins > 10){
+            System.out.println("Player " + getNumber() + ", it is your turn. Your current number of coins is " + coins + " which is over the limit of 10. You must coup this turn!"   );
+            Player target = target();
+            return new Event(this, "Coup", target, "-");
+        }
         System.out.println("Player " + getNumber() + ", it is your turn. Choose an action. Type Options for help.Hand: " + getHand().getHandStringList() + " Coins: " + super.getCoins());
-
         Scanner reader = new Scanner(System.in);
         String in = reader.nextLine();
         System.out.println(in);
@@ -182,7 +185,7 @@ public class Human extends Player {
                 EnemiesInfo();
             }
             else if (Objects.equals(in, "Options")) {
-                System.out.println("Options are: Income, ForeignAid, Coup, Tax, Assassinate, Exchange, Steal");
+                System.out.println("Options are: Income, ForeignAid, Coup, Tax, Assassinate, Exchange, Steal, ShowHand, ShowCoins, ShowTable, EnemiesInfo");
             }
             else if (Objects.equals(in, "Income")) {
                 return new Event(this, "Income",this, "-");

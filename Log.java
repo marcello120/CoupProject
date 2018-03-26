@@ -111,7 +111,7 @@ public class Log {
 
    public ArrayList<String> getEventsforPlayer(int playernum){
        ArrayList<String> actions = new ArrayList<>();
-       for (int i = events.size(); i > 0; i--) {
+       for (int i = events.size()-1; i > 0; i--) {
            if (events.get(i).getOrigin().getNumber() == playernum){
                if (Objects.equals(events.get(i).getAction(), "Exchange") || Objects.equals(events.get(i).getAction(), "RevealedCard")){
                    actions.add(events.get(i).getAction());

@@ -5,6 +5,9 @@ import com.sun.org.apache.regexp.internal.RE;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.lang.Math.max;
+import static java.lang.Math.toIntExact;
+
 /**
  * Created by Sarosi on 24/10/2017.
  */
@@ -24,7 +27,7 @@ public class Player implements Cloneable {
     public int aggression = 5;
     public double suspicion = 0.1;
 
-    public ArrayList<String> cardsclaimed;
+    public ArrayList<String> cardsClaimed;
 
 
     public Player(int number, int playernum, Game g) {
@@ -39,13 +42,110 @@ public class Player implements Cloneable {
         containingGame = g;
     }
 
+    public boolean isThreatTooHigh(){
+        if (ownThreat() > averagethreats()*1.5 ){
+            return true;
+        }
+        int maxcoins = 0;
+        int maxinfluence=0;
+        for (Player p :containingGame.players) {
+            if (p!=this){
+                if (p.coins>maxcoins){
+                    maxcoins=p.coins;
+                }
+                if (p.getHand().getInfuence()>maxinfluence){
+                    maxinfluence = p.getHand().getInfuence();
+                }
+            }
+        }
+        if (maxinfluence< getHand().getInfuence()){
+            return true;
+        }
+        if (maxcoins< coins && coins>6){
+            return true;
+        }
+        double maxthreat=0;
+        for (Double d:gatherThreats().values()) {
+            if (d>maxthreat){
+                maxthreat=d;
+            }
+        }
+        if (maxthreat<ownThreat() && maxcoins>7  ){
+            return true;
+        }
+
+        return false;
+
+    }
+
     public Event askDo() {
 
-        for (MindPlayer p:
-           enemies  ) {
-            if (containingGame.getPlayerByNumber(p.getNumber())!= null){
-                p.updateThreat();
+
+
+        Integer threat = assessThreats();
+
+        if (threat == null){
+            if (isThreatTooHigh()){
+                //own threat is too high
+
+                riskyplay();
+
+                if (coins>7){
+                    return new Event(this, "Coup", getCoupTarget(), "-");
+                }
+                if (coins>3 && (safe("Assassin",null) || hand.contains("Assassin") ){
+                    cardsClaimed.add("Assassin");
+                    return new Event(this, "Coup", getCoupTarget(), "Assassin");
+                }
+
+                if (imminentthreat()){
+                    //relinguish adventage
+                    riskyplay();
+                    lowTempo();
+                    for (Player p:containingGame.players) {
+                        if(p.coins>7){
+                            FakeAssassinate();
+                    }
+
+                }
+                   if(cardsAndCounters()!=null){
+                       if (safe("Ambassador",null)|| hand.contains("Ambassador")){
+                          public fishfor = cardsAndCounters();
+                               //exchange fish for card
+                       }
+                   }
+                    //blocking
+                }
+                return new Event(this, "Income", this, "-");
+
+            }else {
+                //threat level is fine
+
+                //block
+                if(cardsAndCounters()!=null){
+                    if (safe("Ambassador",null)|| hand.contains("Ambassador")){
+                        public fishfor = cardsAndCounters();
+                        //exchange fish for card
+                    }
+                }
+
+                //prep for coup
+                if (safe("Tax,",null)){
+                    return new Event(this, "Tax", this, "-");
+                }
+                if (safe("Steal,",null)){
+                    return new Event(this, "Steal", constTarget, "-");
+                }
+                if (safe("ForeignAid,",null)){
+                    return new Event(this, "ForeignAid", this, "-");
+                }
+                lowTempo();
             }
+
+
+        }else {
+            //todo threat
+            //threat
         }
         if (coins > 10){
             Player target = getCoupTarget();
@@ -256,11 +356,15 @@ public class Player implements Cloneable {
         }
         double modifier = 12.5;
 
+        if (getHand().getInfuence() ==1){
+            modifier-=1;
+        }
+
         double blocklimit = suspicion;
         double blockchance = aggression;
         //up numbers if near death or near coup or if negatively effected
         if (e.getTarget().getNumber() == number){
-           modifier+=2.5;
+            modifier+=2.5;
             //stay alive
             if (Objects.equals(e.getAction(), "Assassinate") && hand.getInfuence() == 1){
                 return e.getCard();
@@ -273,7 +377,18 @@ public class Player implements Cloneable {
                 modifier+=2.5;
             }
         }
-
+        int prevoiusclaims = Collections.frequency(getMindplayerbyNumber(e.getOrigin().getNumber()).getAllcardsClaimed(),  e.getCard());
+        if (prevoiusclaims>1){
+            modifier-=((prevoiusclaims-1)*2.5);
+        }else if(getMindplayerbyNumber(e.getOrigin().getNumber()).getCardsStrategy().contains(e.getCard())){
+            modifier-=1;
+        }
+        if (getMindplayerbyNumber(e.getOrigin().getNumber()).getCardsNotClaimed().contains(e.getCard())){
+            modifier+=5;
+        }
+        if (getMindplayerbyNumber(e.getOrigin().getNumber()).getCardsClaimed().size() > 2){
+            modifier+=1;
+        }
 
        double prob = getProb(e.getOrigin().getNumber(), e.getCard());
 
@@ -283,11 +398,7 @@ public class Player implements Cloneable {
            return e.getCard();
        }
 
-
        if(!MathEliminate(e)){
-         if ( e.getOrigin().getHand().contains(e.getCard())){
-             System.out.println("Here is where I almost dieded");
-           }
             return e.getCard();
         }
         else return null;
@@ -449,6 +560,118 @@ public class Player implements Cloneable {
 
         return this;
     }
+
+    public HashMap<MindPlayer,Double> gatherThreats(){
+        HashMap<MindPlayer,Double> returnmap = new HashMap<>();
+        for (MindPlayer mp: enemies) {
+            if (containingGame.getPlayerByNumber(mp.getNumber())!= null){
+                returnmap.put(mp,mp.updateThreat());
+            }
+        }
+        return  returnmap;
+    }
+
+    public Double ownThreat(){
+        double retthreat;
+        int turnsFromCoup;
+        int influence;
+        double personalThreat;
+        double attackchance;
+        int addationalfactors = 0;
+        int gainperturn;
+
+        influence = getHand().getInfuence();
+
+        //set turn until coup
+        if ((cardsClaimed.contains("Captain"))){
+            gainperturn = 2;
+        }
+        else if ((Collections.frequency(containingGame.table, "Duke") + Collections.frequency(getHand().getHandStringList(), "Duke")) == 3 ){
+            gainperturn = 2;
+        }
+        else if ((cardsClaimed.contains("Duke"))){
+            gainperturn = 3;
+        } else {
+            gainperturn = 1;
+        }
+
+        if (coins > 7){
+            turnsFromCoup = 0;
+        }
+        else{
+            turnsFromCoup = (7 - coins)/ gainperturn ;
+        }
+
+        double enemies = containingGame.players.size() - 1;
+
+        attackchance = 1.0 / enemies ;
+
+        personalThreat = ((7-turnsFromCoup) + (influence * 7))* attackchance;
+
+        if (cardsClaimed.contains("Captain")){
+            addationalfactors += 1;
+        }
+        if ((cardsClaimed.contains("Assassin"))){
+            addationalfactors += 1.5;
+        }
+        if ((cardsClaimed.contains("Duke") )){
+            addationalfactors += 0.5;
+        }
+        retthreat = personalThreat * (1.0 + (addationalfactors/6.0));
+        return retthreat;
+    }
+
+    public double averagethreats(){
+        ArrayList<Double> threats = new ArrayList<>();
+        HashMap<MindPlayer,Double> map = gatherThreats();
+        Iterator iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry)iterator.next();
+            threats.add((Double) entry.getValue());
+            System.out.println(((MindPlayer)entry.getKey()).getNumber() + " = " + entry.getValue());
+        }
+        double sum = 0;
+        for (double b:threats) {
+            sum+=b;
+        }
+        double average = sum/threats.size();
+
+        return average;
+    }
+
+    public Integer assessThreats(){
+        ArrayList<MindPlayer> peaks = new ArrayList<>();
+        HashMap<MindPlayer,Double> map = gatherThreats();
+
+        double average = averagethreats();
+
+        Iterator iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry)iterator.next();
+            System.out.println(((getHand().getInfuence()*7 + 8)/(containingGame.players.size()-1))+1);
+            if ((Double) entry.getValue() > average *1.33 || (Double) entry.getValue() > (((getHand().getInfuence()*7 + 8)/(containingGame.players.size()-1))+2) ){
+                peaks.add((MindPlayer) entry.getKey());
+            }
+        }
+        if (peaks.size() == 0){
+            return null;
+        }
+        if (peaks.size() == 1){
+            return peaks.get(0).getNumber();
+        }
+        if (peaks.size() > 1){
+            Map<MindPlayer, Double> result = new LinkedHashMap<>();
+            map.entrySet().stream()
+                    .sorted(Map.Entry.<MindPlayer, Double>comparingByValue().reversed())
+                    .forEachOrdered(x -> result.put(x.getKey(),x.getValue()));
+            return ((MindPlayer) result.keySet().toArray()[0]).getNumber();
+        }else {
+            return null;
+        }
+
+    }
+
+
 
 
 }

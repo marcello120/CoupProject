@@ -9,6 +9,9 @@ import java.util.stream.Collectors;
 
 public class Game {
 
+    public int threat = 0;
+    public int nothreat =0;
+
     //   UnsuccessfullyChallenged
     //   SuccessfullyChallenged
 
@@ -228,9 +231,7 @@ public class Game {
         if (Objects.equals(askChallenge(e), "SuccessfullyChallenged")) {
             addLog(new Event(p, "DidNotTax", p, "-"));
         } else {
-            System.out.println("Coins were added");
             p.addCoins(3);
-            System.out.println(p.getCoins());
             addLog(e);
         }
     }

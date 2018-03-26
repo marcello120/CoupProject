@@ -13,6 +13,7 @@ public class MindPlayer {
     private ArrayList<String> cardsStrategy;
     private HashMap<String, Double> percentageAndCards;
     private ArrayList<String> cardsConflicted;
+    private ArrayList<String> allcardsClaimed;
     private int number;
     private String profile;
     private ArrayList<String> sureCards;
@@ -37,6 +38,7 @@ public class MindPlayer {
         cardsFalselyClaimed =  new ArrayList<>();
         sureCards = new ArrayList<>();
         cardsClaimed = new ArrayList<>();
+        allcardsClaimed = new ArrayList<>();
         profile = "general";
         percentageAndCards = new HashMap<>();
         cards = initCards();
@@ -46,17 +48,15 @@ public class MindPlayer {
 
 
     public double updateThreat(){
-        double retthreat = 0;
-        int turnsFromCoup =0;
-        int influence=0;
-        double personalThreat =0;
-        double attackchance =0;
+        double retthreat;
+        int turnsFromCoup;
+        int influence;
+        double personalThreat;
+        double attackchance;
         int addationalfactors = 0;
-        int gainperturn = 0;
+        int gainperturn;
 
         influence = owner.containingGame.getPlayerByNumber(number).getHand().getInfuence();
-
-
 
         //set turn until coup
         if ((cardsClaimed.contains("Captain") || cardsStrategy.contains("Captain")) && !cardsNotClaimed.contains("Captain")){
@@ -84,7 +84,7 @@ public class MindPlayer {
 
         personalThreat = ((7-turnsFromCoup) + (influence * 7))* attackchance;
 
-        if ((cardsClaimed.contains("Captain") || cardsStrategy.contains("Captain")) && !cardsNotClaimed.contains("Captain") && (!owner.getHand().getHandStringList().contains("Captain")) || !owner.getHand().getHandStringList().contains("Ambassador")){
+        if ((cardsClaimed.contains("Captain") || cardsStrategy.contains("Captain")) && !cardsNotClaimed.contains("Captain") && ((!owner.getHand().getHandStringList().contains("Captain")) || !owner.getHand().getHandStringList().contains("Ambassador"))){
             addationalfactors += 2;
         }
         if ((cardsClaimed.contains("Assassin") || cardsStrategy.contains("Assassin")) && !cardsNotClaimed.contains("Assassin") && !owner.getHand().getHandStringList().contains("Contessa")){
@@ -130,6 +130,7 @@ public class MindPlayer {
     }
     public void clearKnown(){
         cardsClaimed.clear();
+        allcardsClaimed.clear();
         cardsConflicted.clear();
         cardsNotClaimed.clear();
         for ( String s: cards ) {
@@ -187,20 +188,19 @@ public class MindPlayer {
 
     public void deduceStrategy(){
         Map<String, Integer> freq = owner.containingGame.log.getEventFreq(number);
-        System.out.println(freq);
-       String first = (String) freq.values().toArray()[0];
+       String first = (String) freq.keySet().toArray()[0];
        if(owner.containingGame.turnNumber > 2)
        if (Objects.equals(first, "Income") || Objects.equals(first, "ForeignAid")){
            cardsStrategy.add("Contessa");
            cardsStrategy.add("Assassin");
        }
-       if (Objects.equals(first, "TryingToTax")){
+       if (Objects.equals(first, "TryingToTax") && freq.get(first) > 1){
             cardsStrategy.add("Duke");
        }
-       if (Objects.equals(first, "TryingToSteal")){
+       if (Objects.equals(first, "TryingToSteal" )&& freq.get(first) > 1){
             cardsStrategy.add("Captain");
        }
-       if (Objects.equals(first, "TryingToAssassinate")){
+       if (Objects.equals(first, "TryingToAssassinate")&& freq.get(first) > 1){
             cardsStrategy.add("Assassin");
        }
     }
@@ -219,6 +219,8 @@ public class MindPlayer {
     }
 
     public void addToClaimed(String s){
+        deduceStrategy();
+        allcardsClaimed.add(s);
         if (!cardsClaimed.contains(s)){
             cardsClaimed.add(s);
         }
@@ -252,5 +254,19 @@ public class MindPlayer {
         return cardsFalselyClaimed;
     }
 
+    public ArrayList<String> getAllcardsClaimed() {
+        return allcardsClaimed;
+    }
 
+    public ArrayList<String> getCardsNotClaimed() {
+        return cardsNotClaimed;
+    }
+
+    public ArrayList<String> getCardsConflicted() {
+        return cardsConflicted;
+    }
+
+    public ArrayList<String> getCardsStrategy() {
+        return cardsStrategy;
+    }
 }

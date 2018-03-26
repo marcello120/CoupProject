@@ -11,8 +11,8 @@ public class Event {
 
 
     public Event(Player origin, String action, Player target, String card) {
-        this.origin = origin.clone();
-        this.target = target.clone();
+        this.origin = origin;
+        this.target = target;
         this.action = action;
         this.card = card;
     }
