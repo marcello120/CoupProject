@@ -580,6 +580,17 @@ public class Game {
         return options;
     }
 
+    public Player getOnlyEnemy(Player input){
+        if (players.size() == 2){
+            for (Player p : players) {
+                if (p != input) {
+                    return p;
+                }
+            }
+        }
+        else return null;
+        return input;
+    }
 
 
 }

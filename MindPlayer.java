@@ -171,8 +171,7 @@ public class MindPlayer {
                 double same2 = (2-kx)/(15-1-k);
                 double same = 0.5*(((3-kx)/(15-k))*((2-kx)/(15-1-k)));
                 double diff = 2.0 *(((3-kx)/(15-k))*((15-3-k+kx)/(15-1-k)));
-                double ret =  same + diff;
-                return ret;
+                return same + diff;
             }
         }
     }
