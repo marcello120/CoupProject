@@ -15,7 +15,6 @@ public class MindPlayer {
     private ArrayList<String> cardsConflicted;
     private ArrayList<String> allcardsClaimed;
     private int number;
-    private String profile;
     private ArrayList<String> sureCards;
     private ArrayList<String> cardsFalselyClaimed;
     private Player owner;
@@ -39,7 +38,6 @@ public class MindPlayer {
         sureCards = new ArrayList<>();
         cardsClaimed = new ArrayList<>();
         allcardsClaimed = new ArrayList<>();
-        profile = "general";
         percentageAndCards = new HashMap<>();
         cards = initCards();
         inTheDeck = new ArrayList<>();
@@ -102,7 +100,7 @@ public class MindPlayer {
 
     }
 
-    public HashSet<String> initCards(){
+    private HashSet<String> initCards(){
         Deck d = new Deck();
         HashSet<String> cards = new HashSet<>();
         for (int i = 0; i < d.cards.size(); i++) {
@@ -111,7 +109,7 @@ public class MindPlayer {
         return cards;
     }
 
-    public void upDateNotHave(){
+    private void upDateNotHave(){
         nothave.clear();
         nothave.addAll(owner.getHand().getHandStringList());
         nothave.addAll(owner.containingGame.getTableString());
@@ -182,10 +180,11 @@ public class MindPlayer {
         }
         percentageAndCards.entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .forEachOrdered(x -> percentageAndCards.put(x.getKey(),x.getValue()));
     }
 
-    public void deduceStrategy(){
+    private void deduceStrategy(){
         Map<String, Integer> freq = owner.containingGame.log.getEventFreq(number);
        String first = (String) freq.keySet().toArray()[0];
        if(owner.containingGame.turnNumber > 2)
@@ -228,29 +227,13 @@ public class MindPlayer {
         }
     }
 
-
-    public void setNumber(int number) {
-        this.number = number;
-    }
-
-    public void setProfile(String profile) {
-        this.profile = profile;
+    public ArrayList<String> getNothave() {
+        upDateNotHave();
+        return nothave;
     }
 
     public ArrayList<String> getCardsClaimed() {
         return cardsClaimed;
-    }
-
-    public String getProfile() {
-        return profile;
-    }
-
-    public ArrayList<String> getSureCards() {
-        return sureCards;
-    }
-
-    public ArrayList<String> getCardsFalselyClaimed() {
-        return cardsFalselyClaimed;
     }
 
     public ArrayList<String> getAllcardsClaimed() {

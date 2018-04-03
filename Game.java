@@ -79,7 +79,14 @@ public class Game {
             doFirst(p);
         }else{
             //doRandom(p);
-            doHuman(p.askDo());
+            Event e = p.askDo();
+            if (e.getTarget()==null){
+                System.out.println(e);
+            }
+            if (e.getTarget()==e.getOrigin() && Objects.equals(e.getAction(), "Assassinate")){
+                System.out.println(e);
+            }
+            doHuman(e);
         }
     }
 

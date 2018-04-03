@@ -16,7 +16,7 @@ public class Main {
 
 
         for (int i = 0; i < 1 ; i++) { // set number of matches
-            Game g = new Game(3, 0); //set number of players
+            Game g = new Game(3, 1); //set number of players
             //g.gameState();
             hands.add(g.turns().originalHand.cardsAsBits());
         }
