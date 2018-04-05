@@ -2,7 +2,6 @@ package com.coup;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.Math.toIntExact;
 
@@ -30,7 +29,10 @@ public class Log {
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
-        System.out.println(element.getOrigin()+ " " +element.getAction() + " " + element.getTarget() + " " + element.getCard());
+        System.out.println(element.getOrigin()+ " " +element.getAction() + " " + element.getTarget() + " " + element.getCard() + "  coins: " + element.getOrigin().coins );
+        String card = element.getCard();
+        //System.out.println("Player " + element.getOrigin().getNumber()+ " " +element.getAction() + " " + "Player " + element.getTarget().getNumber() + " " + printCard(element.getCard()));
+
         events.add(element);
     }
 
@@ -108,12 +110,11 @@ public class Log {
     }
 
 
-
    public ArrayList<String> getEventsforPlayer(int playernum){
        ArrayList<String> actions = new ArrayList<>();
        for (int i = events.size()-1; i > 0; i--) {
            if (events.get(i).getOrigin().getNumber() == playernum){
-               if (Objects.equals(events.get(i).getAction(), "Exchange") || Objects.equals(events.get(i).getAction(), "RevealedCard")){
+               if (Objects.equals(events.get(i).getAction(), "Exchange") || Objects.equals(events.get(i).getAction(), "RevealedCard")|| Objects.equals(events.get(i).getAction(), "PutToTable")){
                    actions.add(events.get(i).getAction());
                    return actions;
                }else {
@@ -123,6 +124,29 @@ public class Log {
        }
        return actions;
    }
+
+
+   public String printCard(String inCard){
+       switch (inCard){
+           case "Duke" :
+               return ((char)27 + "[35m" + inCard + (char)27 + "[0m");
+
+           case "Assassin" :
+               return ((char)27 + "[33m" + inCard + (char)27 + "[0m");
+
+           case "Captain" :
+               return ((char)27 + "[34m" + inCard + (char)27 + "[0m");
+
+           case "Ambassador" :
+               return ((char)27 + "[32m" + inCard + (char)27 + "[0m");
+
+           case "Contessa" :
+               return ((char)27 + "[31m" + inCard + (char)27 + "[0m");
+           default :
+               return inCard;
+       }
+   }
+
 
 
 }

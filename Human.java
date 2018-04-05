@@ -242,8 +242,8 @@ public class Human extends Player {
             }
         }
         Scanner reader = new Scanner(System.in);
-        int in = reader.nextInt();
-        while(!ints.contains(in)){
+        String in = reader.nextLine();
+        while(!ints.contains(Integer.parseInt(in))){
             System.out.println("Incorrect input.");
             System.out.println("Please select a target player by entering their number");
             System.out.print("Players in game are: ");
@@ -253,7 +253,7 @@ public class Human extends Player {
                 }
             }
         }
-        return containingGame.getPlayerByNumber(in);
+        return containingGame.getPlayerByNumber(Integer.parseInt(in));
 
     }
 

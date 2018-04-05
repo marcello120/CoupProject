@@ -1,6 +1,5 @@
 package com.coup;
 
-import com.sun.applet2.AppletParameters;
 
 import java.util.*;
 
@@ -14,6 +13,8 @@ public class MindPlayer {
     private HashMap<String, Double> percentageAndCards;
     private ArrayList<String> cardsConflicted;
     private ArrayList<String> allcardsClaimed;
+    private String strategy = "-";
+    private int honest = 0;
     private int number;
     private ArrayList<String> sureCards;
     private ArrayList<String> cardsFalselyClaimed;
@@ -250,5 +251,24 @@ public class MindPlayer {
 
     public ArrayList<String> getCardsStrategy() {
         return cardsStrategy;
+    }
+
+    public String getStrategy() {
+        return strategy;
+    }
+
+    public void setStrategy(String strategy) {
+        this.strategy = strategy;
+    }
+
+    public void addHonest() {
+        honest++;
+        if (honest==2){
+            strategy="Honest";
+        }
+    }
+
+    public int getHonest() {
+        return honest;
     }
 }

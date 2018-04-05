@@ -1,7 +1,9 @@
 package com.coup;
 
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import com.sun.org.apache.regexp.internal.RE;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,6 +15,8 @@ import static java.lang.Math.toIntExact;
  * Created by Sarosi on 24/10/2017.
  */
 public class Player implements Cloneable {
+    public boolean random;
+
     public Random r = new Random();
     public Hand hand;
     public int number;
@@ -25,8 +29,8 @@ public class Player implements Cloneable {
     public ArrayList<String> fromshuffle = new ArrayList<>();
     public String lastshuffled;
     public ArrayList<String> known = new ArrayList<>();
-    public int aggression = 5;
-    public double suspicion = 0.1;
+    public int aggression = 0;
+    public double suspicion;
 
 
     public ArrayList<String> cardsClaimed = new ArrayList<>();
@@ -37,16 +41,25 @@ public class Player implements Cloneable {
 
 
     public Player(int number, int playernum, Game g) {
+//        if (number%2 ==0){
+//            random = true;
+//        }
         this.number = number;
         me = new MindPlayer(number, playernum, this);
+        initEnemies(number, playernum);
+        containingGame = g;
+        suspicion = 11 + (13 - 11) * r.nextDouble();
+    }
+
+    public void initEnemies(int number, int playernum) {
         enemies = new ArrayList<>();
         for (int i = 0; i < playernum; i++) {
             if (i != number) {
                 enemies.add(new MindPlayer(i, playernum, this));
             }
         }
-        containingGame = g;
     }
+
 
     public boolean isThreatTooHigh() {
         if (ownThreat() > averagethreats() * 1.5) {
@@ -110,7 +123,7 @@ public class Player implements Cloneable {
     public Event spendCoins() {
         if (coins > 7) {
             return new Event(this, "Coup", containingGame.getPlayerByNumber(((MindPlayer) gatherThreats().keySet().toArray()[0]).getNumber()), "-");
-        } else if (coins > 3 && (safeGeneral("Assassin", null))) {
+        } else if (coins >= 3 && (safeGeneral("Assassin", null))) {
             cardsClaimed.add("Assassin");
             return new Event(this, "Assassinate", assassinationTarget, "Assassin");
         } else {
@@ -153,25 +166,25 @@ public class Player implements Cloneable {
     }
 
 
-    public Event riskyplay(){
+    public Event riskyplay() {
         Player target = containingGame.getPlayerByNumber(((MindPlayer) gatherThreats().keySet().toArray()[0]).getNumber());
-        if (!(Collections.frequency(containingGame.getTableString(),"Assassin") ==3 ) && !cardsNotClaimed.contains("Assassin") && !getMindplayerbyNumber(target.getNumber()).getCardsClaimed().contains("Contessa")){
-          cardsClaimed.add("Assassain");
-            return new Event(this, "Assassinate", target , "Assassin");
+        if (coins >= 3 && !(Collections.frequency(containingGame.getTableString(), "Assassin") == 3) && !cardsNotClaimed.contains("Assassin") && !getMindplayerbyNumber(target.getNumber()).getCardsClaimed().contains("Contessa")) {
+            cardsClaimed.add("Assassain");
+            return new Event(this, "Assassinate", target, "Assassin");
         }
-        if (!(Collections.frequency(containingGame.getTableString(),"Captain") ==3 ) && !cardsNotClaimed.contains("Captain") && !getMindplayerbyNumber(target.getNumber()).getCardsClaimed().contains("Captain")){
+        if (!(Collections.frequency(containingGame.getTableString(), "Captain") == 3) && !cardsNotClaimed.contains("Captain") && !getMindplayerbyNumber(target.getNumber()).getCardsClaimed().contains("Captain")) {
             cardsClaimed.add("Captain");
             return new Event(this, "Steal", target, "Captain");
-        }else{
+        } else {
             cardsClaimed.add("Duke");
             return new Event(this, "Tax", target, "Duke");
         }
     }
 
-    public Event fakeAssassinate(){
-        for (int i = 0; i < containingGame.players.size()-1; i++) {
+    public Event fakeAssassinate() {
+        for (int i = 0; i < containingGame.players.size() - 1; i++) {
             Player target = containingGame.getPlayerByNumber(((MindPlayer) gatherThreats().keySet().toArray()[i]).getNumber());
-            if(getMindplayerbyNumber(target.getNumber()).getCardsClaimed().contains("Contessa")){
+            if (getMindplayerbyNumber(target.getNumber()).getCardsClaimed().contains("Contessa")) {
                 return new Event(this, "Assassinate", target, "Assassin");
             }
         }
@@ -181,6 +194,8 @@ public class Player implements Cloneable {
 
 
     public Event askDo() {
+
+        System.out.println(number);
 
         if (coins > 10) {
             Player target = containingGame.getPlayerByNumber(((MindPlayer) gatherThreats().keySet().toArray()[0]).getNumber());
@@ -271,9 +286,8 @@ public class Player implements Cloneable {
                     return thisIsPressure(threat);
                 }
             }
+            return thisIsPressure(threat);
         }
-        cardsNotClaimed.add("Duke");
-        return new Event(this, "Income", this, "-");
     }
 
     public Event lowTempo() {
@@ -331,7 +345,7 @@ public class Player implements Cloneable {
             return safeSpecific(card, p);
         }
         if (hand.contains(card)) {
-          return  safeSpecific(card, p);
+            return safeSpecific(card, p);
         }
         if (cardsNotClaimed.contains(card)) {
             return false;
@@ -375,20 +389,37 @@ public class Player implements Cloneable {
             return true;
         }
         if (Objects.equals(card, "Duke")) {
+            if (containingGame.log.getEvents().contains("Income")) {
+                return false;
+            }
             return true;
         }
         if (Objects.equals(card, "Assassin")) {
+            if (coins < 3) {
+                return false;
+            }
             if (Collections.frequency(containingGame.getTableString(), "Contessa") + Collections.frequency(hand.getHandStringList(), "Contessa") == 3) {
+                if (p == null){
                 assassinationTarget = containingGame.getPlayerByNumber(((MindPlayer) gatherThreats().keySet().toArray()[0]).getNumber());
+                }
                 return true;
             }
             if (p == null) {
                 for (MindPlayer mp : enemies) {
                     if (containingGame.getPlayerByNumber(mp.getNumber()) != null) {
+                        if (mp.getCardsNotClaimed().contains("Contessa")){
+                            assassinationTarget = containingGame.getPlayerByNumber(mp.getNumber());
+                            return true;
+                        }
+
                         if (mp.getCardsClaimed().size() >= containingGame.getPlayerByNumber(mp.getNumber()).hand.getInfuence() && !mp.getCardsClaimed().contains("Contessa") && mp.getProb("Contessa") < 40) {
                             assassinationTarget = containingGame.getPlayerByNumber(mp.getNumber());
                             return true;
                         }
+//                        if (!mp.getCardsClaimed().contains("Contessa") && mp.getProb("Contessa") < 40 && r.nextInt(100) < 20){
+//                            assassinationTarget = containingGame.getPlayerByNumber(mp.getNumber());
+//                            return true;
+//                        }
                     }
                 }
             } else {
@@ -398,6 +429,9 @@ public class Player implements Cloneable {
                 if (getMindplayerbyNumber(p.getNumber()).getCardsClaimed().size() >= containingGame.getPlayerByNumber(getMindplayerbyNumber(p.getNumber()).getNumber()).hand.getInfuence() && !getMindplayerbyNumber(p.getNumber()).getCardsClaimed().contains("Contessa") && getMindplayerbyNumber(p.getNumber()).getProb("Contessa") < 40) {
                     return true;
                 }
+//                if (!getMindplayerbyNumber(p.getNumber()).getCardsClaimed().contains("Contessa") && getMindplayerbyNumber(p.getNumber()).getProb("Contessa") < 40 && r.nextInt(100) < 20){
+//                    return true;
+//                }
             }
         }
         if (Objects.equals(card, "ForeignAid")) {
@@ -420,19 +454,44 @@ public class Player implements Cloneable {
                 }
             }
             if (p == null) {
+                int claimedCaptain = 0;
+                int claimedAmbassador = 0;
                 for (MindPlayer mp : enemies) {
                     if (containingGame.getPlayerByNumber(mp.getNumber()) != null) {
-                        if (mp.getCardsNotClaimed().contains("Ambassador") && mp.getCardsNotClaimed().contains("Captain")) {
+                        if (mp.getCardsNotClaimed().contains("Ambassador") || mp.getCardsNotClaimed().contains("Captain")) {
                             stealTarget = containingGame.getPlayerByNumber(mp.getNumber());
                             return true;
                         }
-                        if (mp.getCardsClaimed().size() >= containingGame.getPlayerByNumber(mp.getNumber()).hand.getInfuence() && !mp.getCardsClaimed().contains("Captain") && !mp.getCardsClaimed().contains("Ambassador") && mp.getProb("Ambassador") < 30 && mp.getProb("Captain") < 30) {
+                        if (mp.getCardsClaimed().size() >= containingGame.getPlayerByNumber(mp.getNumber()).hand.getInfuence() && !mp.getCardsClaimed().contains("Captain") && !mp.getCardsClaimed().contains("Ambassador") && mp.getProb("Ambassador") < 40 && mp.getProb("Captain") < 40) {
+                            stealTarget = containingGame.getPlayerByNumber(mp.getNumber());
+                            return true;
+                        }
+                        if (mp.getCardsClaimed().contains("Ambassador")) {
+                            claimedAmbassador++;
+                        }
+                        if (mp.getCardsClaimed().contains("Captain")) {
+                            claimedCaptain++;
+                        }
+                        if (!mp.getCardsClaimed().contains("Ambassador") && !mp.getCardsClaimed().contains("Captain") && mp.getProb("Captain")<40 && mp.getProb("Captain")<40 && r.nextInt(100)<20){
                             stealTarget = containingGame.getPlayerByNumber(mp.getNumber());
                             return true;
                         }
                     }
                 }
+                int countersout = claimedAmbassador + claimedCaptain + Collections.frequency(containingGame.table, "Ambassador") + Collections.frequency(containingGame.table, "Captain");
+
+                if (countersout > 4) {
+                    for (MindPlayer mp : enemies) {
+                        if (containingGame.getPlayerByNumber(mp.getNumber()) != null) {
+                            if (!mp.getCardsClaimed().contains("Ambassador") && !mp.getCardsClaimed().contains("Captain") && mp.getProb("Ambassador") < 40 && mp.getProb("Captain") < 40 ){
+                                stealTarget = containingGame.getPlayerByNumber(mp.getNumber());
+                                return true;
+                            }
+                        }
+                    }
+                }
             } else {
+
                 if (getMindplayerbyNumber(p.getNumber()).getCardsNotClaimed().contains("Ambassador") && getMindplayerbyNumber(p.getNumber()).getCardsNotClaimed().contains("Captain")) {
                     return true;
 
@@ -449,6 +508,10 @@ public class Player implements Cloneable {
 
 
     public void update(Event e) {
+        if (Objects.equals(e.getAction(), "UnsuccessfullyChallenged") && e.getTarget()!=this){
+            getMindplayerbyNumber(e.getTarget().getNumber()).addHonest();
+        }
+
         if (e.getAction().contains("Trying") && !Objects.equals(e.getCard(), "-") && e.getOrigin() != this) {
             getMindplayerbyNumber(e.getOrigin().getNumber()).addToClaimed(e.getCard());
         }
@@ -471,10 +534,13 @@ public class Player implements Cloneable {
             getMindplayerbyNumber(e.getOrigin().getNumber()).clearKnown();
         }
         if ((Objects.equals(e.getAction(), "Steal")) && e.getTarget() == this) {
+            cardsClaimed.removeAll(Collections.singleton("Ambassador"));
+            cardsClaimed.removeAll(Collections.singleton("Captain"));
             cardsNotClaimed.add("Ambassador");
             cardsNotClaimed.add("Captain");
         }
         if ((Objects.equals(e.getAction(), "Assassinate")) && e.getTarget() == this) {
+            cardsClaimed.removeAll(Collections.singleton(e.getCard()));
             cardsNotClaimed.add("Contessa");
         }
         if ((Objects.equals(e.getAction(), "Income")) && e.getTarget() == this) {
@@ -487,7 +553,7 @@ public class Player implements Cloneable {
         if (e.getAction().contains("Trying") && !Objects.equals(e.getCard(), "-") && e.getOrigin() == this) {
             cardsClaimed.add(e.getCard());
         }
-        if (e.getAction().contains("PutToTable") || e.getAction().contains("RevealedCard")  && e.getOrigin() == this) {
+        if (e.getAction().contains("PutToTable") || e.getAction().contains("RevealedCard") && e.getOrigin() == this) {
             cardsClaimed.removeAll(Collections.singleton(e.getCard()));
         }
     }
@@ -512,7 +578,10 @@ public class Player implements Cloneable {
     public Card loseCard() {
         //choice
         if (getHand().getInfuence() == 2) {
-            if (r.nextBoolean()) {
+            //choice
+        ArrayList<Card> cardList = sortCards(getHand().getHandList());
+                Card ditch = cardList.get(1);
+            if (ditch == hand.getCardOne()) {
                 Card ret = getHand().getCardOne();
                 getHand().setCardOne(null);
                 return ret;
@@ -655,7 +724,7 @@ public class Player implements Cloneable {
     }
 
     public boolean askBlockAid(Player p) {
-        if (getHand().contains("Duke")) {
+        if ((getHand().contains("Duke") || cardsClaimed.contains("Duke") || containingGame.turnNumber<1) && !cardsNotClaimed.contains("Duke")) {
             return true;
         } else {
             return false;
@@ -663,7 +732,10 @@ public class Player implements Cloneable {
     }
 
     public boolean askBlockAssassinWithContessa(Player origin) {
-        if (getHand().contains("Contessa")) {
+        if (hand.getInfuence() == 1) {
+            return true;
+        }
+        if (getHand().contains("Contessa") || cardsClaimed.contains("Contessa")) {
             return true;
         } else {
             return false;
@@ -671,6 +743,9 @@ public class Player implements Cloneable {
     }
 
     public String askBlockSteal(Player origin) {
+        if (coins == 0){
+            return null;
+        }
         if (getHand().contains("Ambassador")) {
             return "Ambassador";
         } else if (getHand().contains("Captain")) {
@@ -680,6 +755,9 @@ public class Player implements Cloneable {
     }
 
     public String askChallenge(Event e) {
+        double modifier = suspicion;
+        double challangeChance = aggression;
+
         if (e.getTarget().number == number) {
             if (Objects.equals(e.getAction(), "Assassinate") && hand.contains("Contessa")) {
                 return null;
@@ -687,15 +765,15 @@ public class Player implements Cloneable {
             if (Objects.equals(e.getAction(), "Steal") && (hand.contains("Ambassador") || hand.contains("Captain"))) {
                 return null;
             }
+            if (Objects.equals(e.getAction(), "Steal") && coins == 0) {
+                return null;
+            }
         }
-        double modifier = 12.5;
 
         if (getHand().getInfuence() == 1) {
             modifier -= 1;
         }
 
-        double blocklimit = suspicion;
-        double blockchance = aggression;
         //up numbers if near death or near coup or if negatively effected
         if (e.getTarget().getNumber() == number) {
             modifier += 2.5;
@@ -716,6 +794,8 @@ public class Player implements Cloneable {
             if (Objects.equals(e.getAction(), "BlockAssassination")) {
                 modifier += 2.5;
             }
+        }else {
+            challangeChance -= 5;
         }
         int prevoiusclaims = Collections.frequency(getMindplayerbyNumber(e.getOrigin().getNumber()).getAllcardsClaimed(), e.getCard());
         if (prevoiusclaims > 1) {
@@ -724,21 +804,28 @@ public class Player implements Cloneable {
             modifier -= 1;
         }
         if (getMindplayerbyNumber(e.getOrigin().getNumber()).getCardsNotClaimed().contains(e.getCard())) {
-            modifier += 5;
+            challangeChance += 20;
+            modifier += 10;
+
         }
         if (getMindplayerbyNumber(e.getOrigin().getNumber()).getCardsClaimed().size() > 2) {
             modifier += 1;
         }
-
-
-        double prob = getProb(e.getOrigin().getNumber(), e.getCard());
-
-        double chance = function(prob * 100, modifier);
-
-        if (containingGame.turnNumber < 3 && Objects.equals(e.getCard(), "Duke")){
-            chance = 30 + 23 * Collections.frequency(getMindplayerbyNumber(e.getOrigin().getNumber()).getNothave(),"Duke");
+        if (containingGame.turnNumber < 2 && Objects.equals(e.getCard(), "Duke")) {
+            challangeChance = (25 / (containingGame.turnNumber + 1)) + 23 * Collections.frequency(getMindplayerbyNumber(e.getOrigin().getNumber()).getNothave(), "Duke");
         }
 
+        if (Objects.equals(getMindplayerbyNumber(e.getOrigin().getNumber()).getStrategy(), "Honest")){
+            challangeChance-=20*getMindplayerbyNumber(e.getOrigin().getNumber()).getHonest();
+        }
+
+        double prob = getProb(e.getOrigin().getNumber(), e.getCard());
+        double chance = function(prob * 100, modifier);
+
+        chance += challangeChance;
+        if (chance< 0){
+            chance=0;
+        }
         if (r.nextInt(100) < chance) {
             return e.getCard();
         }
@@ -749,32 +836,23 @@ public class Player implements Cloneable {
     }
 
     public double function(double holding, double modifier) {
-        return -21 + (100 + 21) /  (1 + Math.pow((holding / modifier), 1.1));
+        return -21 + (100 + 21) / (1 + Math.pow((holding / modifier), 1.1));
     }
 
     public Card redraw1(String card) {
 
-        System.out.println("CARD " + card);
-
-        System.out.println("RETURN Hand " + hand);
-
-
         if (getHand().getCardOne() != null) {
-            System.out.println(hand.getCardOne().getName() + " to " + card);
             if (Objects.equals(getHand().getCardOne().getName(), card)) {
                 Card ret = getHand().getCardOne();
                 getHand().setCardOne(null);
-                System.out.println("RETURN " + ret);
                 addToAllKnowns(ret.getName());
                 return ret;
             }
         }
         if (getHand().getCardTwo() != null) {
-            System.out.println(hand.getCardTwo().getName() + " to " + card);
             if (Objects.equals(getHand().getCardTwo().getName(), card)) {
                 Card ret = getHand().getCardTwo();
                 getHand().setCardTwo(null);
-                System.out.println("RETURN " + ret);
                 addToAllKnowns(ret.getName());
                 return ret;
             }
@@ -790,9 +868,7 @@ public class Player implements Cloneable {
             getHand().setCardTwo(draw);
         }
         removefromKnown(draw.getName());
-
         lastshuffled = null;
-
     }
 
 
@@ -1018,5 +1094,7 @@ public class Player implements Cloneable {
 
     }
 
-
+    public void setNumber(int number) {
+        this.number = number;
+    }
 }

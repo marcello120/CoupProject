@@ -11,6 +11,7 @@ public class Game {
 
     public int threat = 0;
     public int nothreat =0;
+    public Player active = null;
 
     //   UnsuccessfullyChallenged
     //   SuccessfullyChallenged
@@ -29,6 +30,7 @@ public class Game {
 
     public int turnNumber = 0;
 
+    int turn = 0;
 
 
     public Game(int playerNum, int humanNum) {
@@ -42,11 +44,21 @@ public class Game {
             players.add(new Player(i, playerNum, this));
         }
         deal();
+        System.out.println(players);
+
+        Collections.shuffle(players);
+
+        System.out.println(players);
+
+        for (int i = 0; i < players.size(); i++) {
+            players.get(i).setNumber(i);
+            players.get(i).initEnemies(players.get(i).number,playerNum);
+        }
     }
 
     public Player turns() {
         boolean over = false;
-        int turn = 0;
+        turn = 0;
         addLog(new Event(players.get(0), "Started", players.get(0), "-"));
         while (!over) {
             if (turn >= players.size()) {
@@ -54,7 +66,7 @@ public class Game {
                 turn = 0;
                 turnNumber++;
             }
-            Player active = players.get(turn);
+            active = players.get(turn);
             if (active instanceof Human){
                 doHuman(((Human) active).askAction());
             }else{
@@ -62,6 +74,11 @@ public class Game {
             }
             turn++;
             if (players.size() == 1) {
+                if (players.get(0).random){
+                    threat++;
+                }else {
+                    nothreat++;
+                }
                 if (players.get(0) instanceof Human){
                     System.out.println("CONGRATS Player " + players.get(0).number + " has won the game");
                 }
@@ -75,18 +92,16 @@ public class Game {
     public void doDecide(Player p){
         ArrayList<Player> targets = new ArrayList<>(players);
         targets.remove(p);
-        if (log.size() == 1){
-            doFirst(p);
-        }else{
-            //doRandom(p);
-            Event e = p.askDo();
-            if (e.getTarget()==null){
-                System.out.println(e);
+        if (p.random){
+            doHonestRandom(p);
+        }else {
+            if (log.size() == 1) {
+                doFirst(p);
+            } else {
+                //doRandom(p);
+                Event e = p.askDo();
+                doHuman(e);
             }
-            if (e.getTarget()==e.getOrigin() && Objects.equals(e.getAction(), "Assassinate")){
-                System.out.println(e);
-            }
-            doHuman(e);
         }
     }
 
@@ -337,7 +352,7 @@ public class Game {
                 doSteal(origin, target);
             }
             if (c == "NoChallenge" || c == "UnsuccessfullyChallenged") {
-                addLog(new Event(origin, "DidNotSteal", target, "Assassin"));
+                addLog(new Event(origin, "DidNotSteal", target, "Captain"));
             }
         }
     }
@@ -357,7 +372,6 @@ public class Game {
 
     public Card makePlayerLoseCard(Player target) {
         if (players.contains(target)) {
-            System.out.println(target.getHand());
             Card c = target.loseCard();
             table.add(c);
             target.getHand().loseInfuence();
@@ -365,7 +379,12 @@ public class Game {
                 System.out.println("Player was removed.");
                 players.remove(target);
                 System.out.println(target + "has lost");
-                addLog(new Event(target, "PutToTable", target, c.getName()));
+
+                if (active.getNumber() >= target.getNumber() ){
+                    turn--;
+
+                }
+
             }
             for (Player p: players) {
                 if (p != target){
@@ -373,6 +392,7 @@ public class Game {
                 }
             }
             updateAllKnowns();
+            addLog(new Event(target, "PutToTable", target, c.getName()));
             return c;
         }else{
             return null;
@@ -470,7 +490,13 @@ public class Game {
         String card = null;
         for (Player c : challengers) {
             if (c.getNumber()!= e.getOrigin().getNumber()){
-                card = c.askChallenge(e);
+                if (c.random){
+                    if (rand.nextInt(100)>50){
+                        card = e.getCard();
+                    }
+                }else {
+                    card = c.askChallenge(e);
+                }
                 if (card != null) {
                     inquisitor = c;
                     break;
