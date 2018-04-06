@@ -156,6 +156,9 @@ public class MindPlayer {
         if (kx == 3){
             return 0;
         }
+        if (owner.containingGame.getPlayerByNumber(number) == null){
+            return 100;
+        }
         if (owner.containingGame.getPlayerByNumber(number).getHand().getInfuence() == 1){
             // has 1 card
             return (3-kx)/(15-k);

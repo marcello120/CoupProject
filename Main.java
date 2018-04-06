@@ -15,6 +15,7 @@ public class Main {
         int humancount = 0;
 
 
+
         //set number of players
 
 //        while (!correctinput) {
