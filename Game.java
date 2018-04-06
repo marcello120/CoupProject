@@ -32,6 +32,8 @@ public class Game {
 
     int turn = 0;
 
+    int movenumber = 1;
+
 
     public Game(int playerNum, int humanNum) {
         deck = new Deck();
@@ -73,6 +75,7 @@ public class Game {
                 doDecide(active);
             }
             turn++;
+            movenumber++;
             if (players.size() == 1) {
                 if (players.get(0).random){
                     threat++;
@@ -95,13 +98,26 @@ public class Game {
         if (p.random){
             doHonestRandom(p);
         }else {
-            if (log.size() == 1) {
+            if (rand.nextInt(100) < 100/movenumber && p.getHand().getInfuence()==2){
                 doFirst(p);
-            } else {
-                //doRandom(p);
+            }else {
                 Event e = p.askDo();
                 doHuman(e);
             }
+
+
+
+
+//            if (log.size() == 1) {
+//                doFirst(p);
+//            } else {
+//                if (turnNumber < 2 && rand.nextInt(100) < 100 && p.getHand().getInfuence()==2){
+//                    doFirst(p);
+//                }else {
+//                    Event e = p.askDo();
+//                    doHuman(e);
+//                }
+//            }
         }
     }
 

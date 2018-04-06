@@ -29,7 +29,7 @@ public class Log {
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
-        System.out.println(element.getOrigin()+ " " +element.getAction() + " " + element.getTarget() + " " + element.getCard() + "  coins: " + element.getOrigin().coins );
+        System.out.println(element.getOrigin().random +" " + element.getOrigin()+ " " +element.getAction() + " " + element.getTarget() + " " + element.getCard() + "  coins: " + element.getOrigin().coins );
         String card = element.getCard();
         //System.out.println("Player " + element.getOrigin().getNumber()+ " " +element.getAction() + " " + "Player " + element.getTarget().getNumber() + " " + printCard(element.getCard()));
 

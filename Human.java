@@ -28,6 +28,13 @@ public class Human extends Player {
         }
     }
 
+    public void Explain(){
+        showHand();
+        for (int i = 0; i < hand.getHandList().size(); i++) {
+            System.out.println(hand.getHandList().get(i).getName() + " :" +  hand.getHandList().get(i).getDescription());
+        }
+    }
+
     public void showTable(){
         System.out.print("The cards on the table are: ");
         for (Card c : containingGame.table) {
@@ -184,8 +191,11 @@ public class Human extends Player {
             else if (Objects.equals(in, "EnemiesInfo") || Objects.equals(in, "Enemies")) {
                 EnemiesInfo();
             }
+            else if (Objects.equals(in, "Explain")) {
+                Explain();
+            }
             else if (Objects.equals(in, "Options")) {
-                System.out.println("Options are: Income, ForeignAid, Coup, Tax, Assassinate, Exchange, Steal, ShowHand, ShowCoins, ShowTable, EnemiesInfo");
+                System.out.println("Options are: Income, ForeignAid, Coup, Tax, Assassinate, Exchange, Steal, ShowHand, ShowCoins, ShowTable, EnemiesInfo, Explain");
             }
             else if (Objects.equals(in, "Income")) {
                 return new Event(this, "Income",this, "-");

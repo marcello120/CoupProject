@@ -14,7 +14,7 @@ public class Deck {
         cards = new Stack<Card>();
 
         for (int i = 0; i < 3; i++) {
-            cards.push(new Card("Contessa","blckKi","blocks assassinations"));
+            cards.push(new Card("Contessa","blckKi","Blocks assassinations"));
         }
         for (int i = 0; i < 3; i++) {
             cards.push(new Card("Captain","St-bclkSt","Steal, take 2 coins from an other player, can be blocked by Captain and Ambasador"));
@@ -28,7 +28,6 @@ public class Deck {
         for (int i = 0; i < 3; i++) {
             cards.push(new Card("Duke","Ta-blckFa","Tax, get 3 coins, can block foreign aid, can block Foreign aid"));
         }
-
         shuffle();
 
     }

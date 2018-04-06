@@ -11,7 +11,7 @@ public class Main {
 
         boolean correctinput = false;
 
-        int playercount = 6;
+        int playercount = 4;
         int humancount = 0;
 
 
@@ -45,7 +45,7 @@ public class Main {
         int nothreats = 0;
 
 
-        for (int i = 0; i < 1000; i++) { // set number of matches
+        for (int i = 0; i < 10000; i++) { // set number of matches
             Game g = new Game(playercount, humancount); //set number of players
             //g.gameState();
             hands.add(g.turns().originalHand.cardsAsBits());
