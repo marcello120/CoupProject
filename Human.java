@@ -1,8 +1,5 @@
 package com.coup;
 
-import com.sun.org.apache.xpath.internal.SourceTree;
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
-
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
@@ -23,15 +20,15 @@ public class Human extends Player {
     public void EnemiesInfo(){
         for (Player p: containingGame.players) {
             if (p.getNumber()!= this.getNumber()){
-                System.out.println("Player " + p.getNumber()+" has " + p.getHand().getInfuence() +" cards and " + p.getCoins() + " coins.");
+                System.out.println("Player " + p.getNumber()+" has " + p.getHand().getInfluence() +" cards and " + p.getCoins() + " coins.");
             }
         }
     }
 
     public void Explain(){
         showHand();
-        for (int i = 0; i < hand.getHandList().size(); i++) {
-            System.out.println(hand.getHandList().get(i).getName() + " :" +  hand.getHandList().get(i).getDescription());
+        for (int i = 0; i < getHand().getHandList().size(); i++) {
+            System.out.println(getHand().getHandList().get(i).getName() + " :" +  getHand().getHandList().get(i).getDescription());
         }
     }
 
@@ -109,7 +106,7 @@ public class Human extends Player {
             ret.add(options.remove(n-1));
         }
 
-        if (getHand().getInfuence() == 1){
+        if (getHand().getInfluence() == 1){
             if (getHand().getCardOne() != null){
                 getHand().setCardOne(options.get(0));
             }else {
@@ -294,7 +291,7 @@ public class Human extends Player {
 
     public Card loseCard() {
         System.out.println("Player number " + number + " you must loose a card");
-        if (getHand().getInfuence() == 2) {
+        if (getHand().getInfluence() == 2) {
             System.out.println("Press 1 to loose " + getHand().getCardOne() + ". Press 2 to loose " + getHand().getCardTwo());
             Scanner reader = new Scanner(System.in);
             int n = reader.nextInt();

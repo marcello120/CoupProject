@@ -9,9 +9,26 @@ import java.util.stream.Collectors;
 
 public class Game {
 
-    public int threat = 0;
-    public int nothreat =0;
-    public Player active = null;
+    public int RandWin = 0;
+    public int AIWin =0;
+    public int threatcount = 0;
+    public int nothreatcount = 0;
+    private Player active = null;
+    public int assassinationCount = 0;
+    public int incomeCount = 0;
+    public int foreignAidCount = 0;
+    public int exchangeCount = 0;
+    public int coupCount = 0;
+    public int stealCount = 0;
+    public int taxCount = 0;
+    public int succChallenges = 0;
+    public int unSuccChallenge = 0;
+    public int nochallenge =0;
+
+
+
+
+
 
     //   UnsuccessfullyChallenged
     //   SuccessfullyChallenged
@@ -26,13 +43,13 @@ public class Game {
 
     public ArrayList<Card> table = new ArrayList<>();
 
-    public  boolean firstTurn = true;
+    private boolean firstTurn = true;
 
     public int turnNumber = 0;
 
-    int turn = 0;
+    private int turn = 0;
 
-    int movenumber = 1;
+    private int movenumber = 1;
 
 
     public Game(int playerNum, int humanNum) {
@@ -78,9 +95,9 @@ public class Game {
             movenumber++;
             if (players.size() == 1) {
                 if (players.get(0).random){
-                    threat++;
+                    RandWin++;
                 }else {
-                    nothreat++;
+                    AIWin++;
                 }
                 if (players.get(0) instanceof Human){
                     System.out.println("CONGRATS Player " + players.get(0).number + " has won the game");
@@ -92,36 +109,22 @@ public class Game {
         return players.get(0);
     }
 
-    public void doDecide(Player p){
+    private void doDecide(Player p){
         ArrayList<Player> targets = new ArrayList<>(players);
         targets.remove(p);
         if (p.random){
             doHonestRandom(p);
         }else {
-            if (rand.nextInt(100) < 100/movenumber && p.getHand().getInfuence()==2){
+            if (rand.nextInt(100) < 100/movenumber && p.getHand().getInfluence()==2){
                 doFirst(p);
             }else {
                 Event e = p.askDo();
                 doHuman(e);
             }
-
-
-
-
-//            if (log.size() == 1) {
-//                doFirst(p);
-//            } else {
-//                if (turnNumber < 2 && rand.nextInt(100) < 100 && p.getHand().getInfuence()==2){
-//                    doFirst(p);
-//                }else {
-//                    Event e = p.askDo();
-//                    doHuman(e);
-//                }
-//            }
         }
     }
 
-    public void doHonestRandom(Player p) {
+    private void doHonestRandom(Player p) {
         ArrayList<Player> targets = new ArrayList<>(players);
       //  targets.remove(p);
         ArrayList<Integer> moves = new ArrayList<>();
@@ -171,26 +174,26 @@ public class Game {
         }
     }
 
-    public void doHuman(Event e){
-        if (e.getAction() == "Income"){
+    private void doHuman(Event e){
+        if (Objects.equals(e.getAction(), "Income")){
             income(e.getOrigin());
         }
-        if (e.getAction() == "ForeignAid"){
+        if (Objects.equals(e.getAction(), "ForeignAid")){
             foreignAid(e.getOrigin());
         }
-        if (e.getAction() == "Coup"){
+        if (Objects.equals(e.getAction(), "Coup")){
             coup(e.getOrigin(),e.getTarget());
         }
-        if (e.getAction() == "Tax"){
+        if (Objects.equals(e.getAction(), "Tax")){
             tax(e.getOrigin());
         }
-        if (e.getAction() == "Assassinate"){
+        if (Objects.equals(e.getAction(), "Assassinate")){
             assassinate(e.getOrigin(), e.getTarget());
         }
-        if (e.getAction() == "Exchange"){
+        if (Objects.equals(e.getAction(), "Exchange")){
             exchange(e.getOrigin());
         }
-        if (e.getAction() == "Steal"){
+        if (Objects.equals(e.getAction(), "Steal")){
             steal(e.getOrigin(), e.getTarget());
         }
     }
@@ -227,7 +230,7 @@ public class Game {
     }
 
 
-    public void deal() {
+    private void deal() {
         for (Player p : players) {
             p.setHand(new Hand(deck.draw(), deck.draw()));
             p.setCoins(2);
@@ -280,21 +283,21 @@ public class Game {
             origin.removeCoins(3);
             Event e = new Event(origin, "Assassinate", target, "Assassin");
             String challenge = askChallenge(e);
-            if (challenge == "SuccessfullyChallenged") {
+            if (Objects.equals(challenge, "SuccessfullyChallenged")) {
                 addLog(new Event(origin, "DidNotAssassinate", target, "Assassin"));
                 return false;
             }
-            if (challenge == "UnsuccessfullyChallenged" && log.getLastEvent().getAction() == "RevealedCard" && log.getLastEvent().getTarget() == target && log.getLastEvent().getOrigin() == origin) {
+            if (Objects.equals(challenge, "UnsuccessfullyChallenged") && Objects.equals(log.getLastEvent().getAction(), "RevealedCard") && log.getLastEvent().getTarget() == target && log.getLastEvent().getOrigin() == origin) {
                 // target cannot block
                 makePlayerLoseCard(target);
                 addLog(e);
             } else {
                 String c = blockAssassination(origin, target);
-                if (c == "NoBlock" || c == "SuccessfullyChallenged") {
+                if (Objects.equals(c, "NoBlock") || Objects.equals(c, "SuccessfullyChallenged")) {
                     addLog(e);
                     makePlayerLoseCard(target);
                 }
-                if (c == "NoChallenge" || c == "UnsuccessfullyChallenged") {
+                if (Objects.equals(c, "NoChallenge") || Objects.equals(c, "UnsuccessfullyChallenged")) {
                     addLog(new Event(origin, "DidNotAssassinate", target, "Assassin"));
                     return false;
 
@@ -308,37 +311,10 @@ public class Game {
     }
 
 
-
-// lifeline, stayin alive
-
-//        if (target.getHand().getInfuence() == 1){
-//            String lifeline = target.stayinAlive(origin);
-//            if (lifeline == "Block"){
-//                if (!askChallenge(new Event(target, "BlockAssassination", origin, "Contessa"))) {
-//                    return true;
-//                }
-//            }else{
-//                if (target.getHand().getInfuence() != 0) {
-//                    makePlayerLoseCard(target);
-//                    log.add(new Event(origin, "Assassinate", target, "Assassin"));
-//                }
-//            }
-//            if (lifeline == "Challenge"){
-//                if (arbiter(target, "Assassin",origin)){
-//                    return false;
-//                }else{
-//                    if (target.getHand().getInfuence() != 0) {
-//                        makePlayerLoseCard(target);
-//                        log.add(new Event(origin, "Assassinate", target, "Assassin"));
-//                    }
-//                }
-//            }
-//        }
-
     public void exchange(Player p) {
         addLog(new Event(p, "TryingToExchange", p, "Ambassador"));
         String c = askChallenge(new Event(p, "Exchange", p, "Ambassador"));
-        if (c == "NoChallenge" || c == "UnsuccessfullyChallenged") {
+        if (Objects.equals(c, "NoChallenge") || Objects.equals(c, "UnsuccessfullyChallenged")) {
             ArrayList<Card> temp;
             temp = p.exchange(deck.draw(), deck.draw());
             for (int i = 0; i < temp.size(); i++) {
@@ -354,20 +330,20 @@ public class Game {
         addLog(new Event(origin, "TryingToSteal", target, "Captain"));
         Event e = new Event(origin, "Steal", target, "Captain");
         String challenge = askChallenge(e);
-        if (challenge == "SuccessfullyChallenged") {
+        if (Objects.equals(challenge, "SuccessfullyChallenged")) {
             addLog(new Event(origin, "DidNotSteal", target, "Captain"));
             return;
         }
-        if (challenge == "UnsuccessfullyChallenged" && log.getLastEvent().getAction() == "RevealedCard" && log.getLastEvent().getTarget() == target && log.getLastEvent().getOrigin() == origin) {
+        if (Objects.equals(challenge, "UnsuccessfullyChallenged") && Objects.equals(log.getLastEvent().getAction(), "RevealedCard") && log.getLastEvent().getTarget() == target && log.getLastEvent().getOrigin() == origin) {
             // target cannot block
             doSteal(origin,target);
         }
         else {
             String c = blockSteal(origin, target);
-            if (c == "NoBlock" || c == "SuccessfullyChallenged") {
+            if (Objects.equals(c, "NoBlock") || Objects.equals(c, "SuccessfullyChallenged")) {
                 doSteal(origin, target);
             }
-            if (c == "NoChallenge" || c == "UnsuccessfullyChallenged") {
+            if (Objects.equals(c, "NoChallenge") || Objects.equals(c, "UnsuccessfullyChallenged")) {
                 addLog(new Event(origin, "DidNotSteal", target, "Captain"));
             }
         }
@@ -390,9 +366,9 @@ public class Game {
         if (players.contains(target)) {
             Card c = target.loseCard();
             table.add(c);
-            target.getHand().loseInfuence();
-            if (target.getHand().getInfuence() < 1) {
-                System.out.println("Player was removed.");
+            target.getHand().loseInfluence();
+            if (target.getHand().getInfluence() < 1) {
+                System.out.println("A player was removed.");
                 players.remove(target);
                 System.out.println(target + "has lost");
 
@@ -447,12 +423,12 @@ public class Game {
         if (blocker != null) {
             addLog(new Event(blocker, "TryingToBlockForeignAid", p, "Duke"));
             String c = askChallenge(new Event(blocker, "BlockForeignAid", p, "Duke"));
-            if (c == "SuccessfullyChallenged") {
+            if (Objects.equals(c, "SuccessfullyChallenged")) {
                 addLog(new Event(blocker, "DidNotBlockForeignAid", p, "Duke"));
                 return "SuccessfullyChallenged";
             } else {
                 addLog(new Event(blocker, "BlockForeignAid", p, "Duke"));
-                if(c == "NoChallenge"){
+                if(Objects.equals(c, "NoChallenge")){
                     return "NoChallenge";
                 }else{
                     return "UnsuccessfullyChallenged";
@@ -467,7 +443,7 @@ public class Game {
         if (target.askBlockAssassinWithContessa(origin)) {
             addLog(new Event(target, "TryingToBlockAssassination", origin, "Contessa"));
             String c = askChallenge(new Event(target, "BlockAssassination", origin, "Contessa"));
-            if (c == "SuccessfullyChallenged") {
+            if (Objects.equals(c, "SuccessfullyChallenged")) {
 
             } else {
                 addLog(new Event(target, "BlockAssassination", origin, "Contessa"));
@@ -484,10 +460,10 @@ public class Game {
         if (decision != null) {
             addLog(new Event(target, "TryingToBlockStealWith" + decision, origin, decision));
             String c = askChallenge(new Event(target, "BlockStealWith" + decision, origin, decision));
-            if ( c == "SuccessfullyChallenged") {
+            if (Objects.equals(c, "SuccessfullyChallenged")) {
                 addLog(new Event(target, "DidNotBlockStealWith" + decision, origin, decision));
                 return "SuccessfullyChallenged";
-            } else if(c == "UnsuccessfullyChallenged") {
+            } else if(Objects.equals(c, "UnsuccessfullyChallenged")) {
                 addLog(new Event(target, "BlockStealWith" + decision, origin, decision));
                 return "UnsuccessfullyChallenged";
             }else{
@@ -523,6 +499,7 @@ public class Game {
             addLog(new Event(inquisitor, "challenge", e.getOrigin(), card));
             return arbiter(inquisitor, card, e.getOrigin());
         } else {
+            nochallenge++;
             return "NoChallenge";
         }
 
@@ -545,7 +522,7 @@ public class Game {
     }
 
     private void doFirst(Player p){
-        System.out.println(p.getHand().cardsAsBits());
+       // System.out.println(p.getHand().cardsAsBits());
         if (p.getHand().contains("Duke")){
             tax(p);
         }else if(Objects.equals(p.getHand().cardsAsBits(), "01000") || Objects.equals(p.getHand().cardsAsBits(), "01100") || Objects.equals(p.getHand().cardsAsBits(), "00100")){
@@ -579,10 +556,6 @@ public class Game {
                 a.add(players.get(i).getHand().getCardTwo().getName());
             }
         }
-        if(deck.cards.size() < 3){
-            System.out.println("hinye!");
-        }
-
         Map<String, Long> counts =
                 a.stream().collect(Collectors.groupingBy(e -> e, Collectors.counting()));
 
@@ -601,6 +574,34 @@ public class Game {
     }
 
     public void addLog(Event e){
+        if (Objects.equals(e.getAction(), "Tax")){
+            taxCount++;
+        }
+        if (Objects.equals(e.getAction(), "Steal")){
+            stealCount++;
+        }
+        if (Objects.equals(e.getAction(), "Assassinate")){
+            assassinationCount++;
+        }
+        if (Objects.equals(e.getAction(), "Exchange")){
+            exchangeCount++;
+        }
+        if (Objects.equals(e.getAction(), "Income")){
+            incomeCount++;
+        }
+        if (Objects.equals(e.getAction(), "ForeignAid")){
+            foreignAidCount++;
+        }
+        if (Objects.equals(e.getAction(), "Coup")){
+            coupCount++;
+        }
+        if (Objects.equals(e.getAction(), "SuccessfullyChallenged")){
+           // && !Objects.equals(e.getCard(), "Duke")
+            succChallenges++;
+        }
+        if (Objects.equals(e.getAction(), "UnsuccessfullyChallenged")){
+            unSuccChallenge++;
+        }
         log.add(e);
         notify(e);
     }

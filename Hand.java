@@ -1,6 +1,7 @@
 package com.coup;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Created by Sarosi on 31/10/2017.
@@ -8,19 +9,19 @@ import java.util.ArrayList;
 public class Hand {
     private Card cardOne;
     private Card cardTwo;
-    private int infuence = 2;
+    private int influence = 2;
 
     public Hand(Card cardOne, Card cardTwo) {
         this.cardOne = cardOne;
         this.cardTwo = cardTwo;
     }
 
-    public int getInfuence() {
-        return infuence;
+    public int getInfluence() {
+        return influence;
     }
 
-    public void setInfuence(int infuence) {
-        this.infuence = infuence;
+    public void setInfluence(int influence) {
+        this.influence = influence;
     }
 
     public Card getCardOne() {
@@ -61,8 +62,8 @@ public class Hand {
         return cardStrings;
     }
 
-    public void loseInfuence(){
-        infuence--;
+    public void loseInfluence(){
+        influence--;
     }
 
     @Override
@@ -70,37 +71,37 @@ public class Hand {
         return "Hand{" +
                 "cardOne=" + cardOne +
                 ", cardTwo=" + cardTwo +
-                ", infuence=" + infuence +
+                ", influence=" + influence +
                 '}';
     }
 
     public String cardsAsBits(){
         String s = "";
-        if (cardOne.getName() == "Contessa" || cardTwo.getName() == "Contessa"){
+        if (Objects.equals(cardOne.getName(), "Contessa") || Objects.equals(cardTwo.getName(), "Contessa")){
             s = s+"1";
         }
         else{
             s = s+"0";
         }
-        if (cardOne.getName() == "Captain" || cardTwo.getName() == "Captain"){
+        if (Objects.equals(cardOne.getName(), "Captain") || Objects.equals(cardTwo.getName(), "Captain")){
             s = s+"1";
         }
         else{
             s = s+"0";
         }
-        if (cardOne.getName() == "Ambassador" || cardTwo.getName() == "Ambassador"){
+        if (Objects.equals(cardOne.getName(), "Ambassador") || Objects.equals(cardTwo.getName(), "Ambassador")){
             s = s+"1";
         }
         else{
             s = s+"0";
         }
-        if (cardOne.getName() == "Assassin" || cardTwo.getName() == "Assassin"){
+        if (Objects.equals(cardOne.getName(), "Assassin") || Objects.equals(cardTwo.getName(), "Assassin")){
             s = s+"1";
         }
         else{
             s = s+"0";
         }
-        if (cardOne.getName() == "Duke" || cardTwo.getName() == "Duke"){
+        if (Objects.equals(cardOne.getName(), "Duke") || Objects.equals(cardTwo.getName(), "Duke")){
             s = s+"1";
         }
         else{
@@ -113,12 +114,12 @@ public class Hand {
 
     public boolean contains(String s){
         if (cardOne!= null){
-            if (cardOne.getName() == s){
+            if (Objects.equals(cardOne.getName(), s)){
                 return true;
             }
         }
         if (cardTwo!= null){
-            if (cardTwo.getName() == s){
+            if (Objects.equals(cardTwo.getName(), s)){
                 return true;
             }
         }

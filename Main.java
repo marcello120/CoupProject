@@ -11,7 +11,7 @@ public class Main {
 
         boolean correctinput = false;
 
-        int playercount = 4;
+        int playercount = 3;
         int humancount = 0;
 
 
@@ -41,27 +41,66 @@ public class Main {
 
         ArrayList<String> hands = new ArrayList<>();
 
-        int threats = 0;
-        double avg = 0;
-        int nothreats = 0;
+        int RandWin = 0;
+        int AIWin = 0;
+         int assassinationCount = 0;
+         int incomeCount = 0;
+         int foreignAidCount = 0;
+         int exchangeCount = 0;
+         int coupCount = 0;
+         int stealCount = 0;
+         int taxCount = 0;
+         int threatcount = 0;
+         int nothreatcount = 0;
+         int succChallenge = 0;
+         int unSuccChallenge = 0;
+         int nochallange = 0;
 
 
-        for (int i = 0; i < 10000; i++) { // set number of matches
+
+
+        for (int i = 0; i < 1000; i++) { // set number of matches
             Game g = new Game(playercount, humancount); //set number of players
             //g.gameState();
             hands.add(g.turns().originalHand.cardsAsBits());
-            threats += g.threat;
-            nothreats += g.nothreat;
+
+            RandWin += g.RandWin;
+            AIWin += g.AIWin;
+            assassinationCount+=g.assassinationCount;
+            incomeCount+=g.incomeCount;
+            foreignAidCount+=g.foreignAidCount;
+            exchangeCount+=g.exchangeCount;
+            coupCount+=g.coupCount;
+            stealCount+=g.stealCount;
+            taxCount+=g.taxCount;
+            threatcount+=g.threatcount;
+            nothreatcount+=g.nothreatcount;
+            succChallenge+=g.succChallenges;
+            unSuccChallenge+=g.unSuccChallenge;
+            nochallange+=g.nochallenge;
+
         }
-        System.out.println(threats);
-        System.out.println(nothreats);
+        System.out.println("AssassinationCount " + assassinationCount);
+        System.out.println("IncomeCount " + incomeCount);
+        System.out.println("ForeignAidCount " + foreignAidCount);
+        System.out.println("ExchangeCount " + exchangeCount);
+        System.out.println("CoupCount " + coupCount);
+        System.out.println("StealCount " + stealCount);
+        System.out.println("taxCount " + taxCount);
+        System.out.println("Successfully challenged " + succChallenge);
+        System.out.println("Unsuccessfully challenged " + unSuccChallenge);
+        System.out.println("NoChallenge " + nochallange);
 
 
-        System.out.println(hands);
+        System.out.println( "Random wins: " + RandWin);
+        System.out.println( "AI wins: " + AIWin);
+
+
+        //System.out.println(hands);
 
         Map<String, Long> counts =
                 hands.stream().collect(Collectors.groupingBy(e -> e, Collectors.counting()));
 
-        System.out.println(counts);
+        //System.out.println(counts);
     }
 }

@@ -1,6 +1,5 @@
 package com.coup;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Stack;
 
@@ -17,10 +16,10 @@ public class Deck {
             cards.push(new Card("Contessa","blckKi","Blocks assassinations"));
         }
         for (int i = 0; i < 3; i++) {
-            cards.push(new Card("Captain","St-bclkSt","Steal, take 2 coins from an other player, can be blocked by Captain and Ambasador"));
+            cards.push(new Card("Captain","St-bclkSt","Steal, take 2 coins from an other player, can be blocked by Captain and Ambassador"));
         }
         for (int i = 0; i < 3; i++) {
-            cards.push(new Card("Ambassador","Ch-bclkSt","Draw 2 cards from the dedck, then choose 2 to keep and shuffle the others back in."));
+            cards.push(new Card("Ambassador","Ch-bclkSt","Draw 2 cards from the deck, then choose 2 to keep and shuffle the others back in."));
         }
         for (int i = 0; i < 3; i++) {
             cards.push(new Card("Assassin","Ki","Pay 3 coins to assassinate a target. Can be blocked by Contessa"));

@@ -55,7 +55,7 @@ public class MindPlayer {
         int addationalfactors = 0;
         int gainperturn;
 
-        influence = owner.containingGame.getPlayerByNumber(number).getHand().getInfuence();
+        influence = owner.containingGame.getPlayerByNumber(number).getHand().getInfluence();
 
         //set turn until coup
         if ((cardsClaimed.contains("Captain") || cardsStrategy.contains("Captain")) && !cardsNotClaimed.contains("Captain")){
@@ -141,12 +141,7 @@ public class MindPlayer {
     }
 
     public boolean canHave(String s){
-       if(Collections.frequency(nothave, s) == 3){
-           return false;
-       }
-       else{
-           return  true;
-       }
+        return Collections.frequency(nothave, s) != 3;
     }
 
     public double getProb(String card){
@@ -159,7 +154,7 @@ public class MindPlayer {
         if (owner.containingGame.getPlayerByNumber(number) == null){
             return 100;
         }
-        if (owner.containingGame.getPlayerByNumber(number).getHand().getInfuence() == 1){
+        if (owner.containingGame.getPlayerByNumber(number).getHand().getInfluence() == 1){
             // has 1 card
             return (3-kx)/(15-k);
         }else{
@@ -169,8 +164,6 @@ public class MindPlayer {
               return  2*  (3-kx)/(15-k);
             }else{
                 // more then 1 unknown
-                double same1 = (3-kx)/(15-k);
-                double same2 = (2-kx)/(15-1-k);
                 double same = 0.5*(((3-kx)/(15-k))*((2-kx)/(15-1-k)));
                 double diff = 2.0 *(((3-kx)/(15-k))*((15-3-k+kx)/(15-1-k)));
                 return same + diff;
